@@ -1,0 +1,2 @@
+# TheoInventoryApp
+Store functionality
