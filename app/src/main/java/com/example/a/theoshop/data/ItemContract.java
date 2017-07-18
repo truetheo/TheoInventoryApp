@@ -34,6 +34,19 @@ public final class ItemContract {
         public final static String COLUMN_ITEM_QUANTITY= "quantity";
         public final static String COLUMN_ITEM_IMAGE= "image";
 
+        public static boolean isValidPrice(int price){
+            if(price > 0){
+                return true;
+            }
+            return false;
+        }
+        public static boolean isValidQuantity(int quantity){
+            if(quantity < 0){
+                return false;
+            }
+            return true;
+        }
+
     }
 
 
