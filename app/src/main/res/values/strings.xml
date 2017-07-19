@@ -1,3 +1,26 @@
 <resources>
     <string name="app_name">TheoShop</string>
+    <string name="action_delete_all_entries">Delete All Products</string>
+    <string name="empty_view_title_text">No products</string>
+    <string name="empty_view_subtitle_text">Get started by adding a product</string>
+    <string name="editor_activity_new_item">Add product</string>
+    <string name="editor_activity_title_edit_item">Edit product</string>
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="editor_insert_product_successful">Product added</string>
+    <string name="editor_insert_product_failed">Error with saving product</string>
+    <string name="editor_update_product_successful">Product updated</string>
+    <string name="editor_update_product_failed">Error with product update</string>
+    <string name="delete_dialog_msg">Delete this product?</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="category_overview">Overview</string>
+    <string name="category_measurement">Measurement</string>
+    <string name="hint_product_name">Name</string>
+    <string name="hint_product_price">Price</string>
+    <string name="hint_product_quantity">Quantity</string>
+    <string name="editor_product_image">Product picture</string>
+    <string name="unsaved_changes_dialog_msg">Do you want to stop editing? Changes are unsaved</string>
+    <string name="discard">Discard</string>
+    <string name="keep_editing">Keep editing</string>
 </resources>

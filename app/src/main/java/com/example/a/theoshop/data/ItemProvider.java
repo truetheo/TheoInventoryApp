@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
+
 import com.example.a.theoshop.data.ItemContract.ItemEntry;
 
 /**
@@ -83,6 +85,7 @@ public class ItemProvider extends ContentProvider {
     @Nullable
     @Override
     public String getType(@NonNull Uri uri) {
+        // Figure out if the URI matcher can match the URI to a specific code
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case ITEMS:
@@ -96,7 +99,17 @@ public class ItemProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
+    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values){
+        // Figure out if the URI matcher can match the URI to a specific code
+        final int match =sUriMatcher.match(uri);
+        switch(match){
+            case ITEMS:
+                return insertItem(uri, values);
+            default:
+                throw new IllegalArgumentException("Insertion is not supported for " + uri);
+        }
+    }
+    private Uri insertItem(Uri uri,ContentValues values) {
         if (values.containsKey(ItemEntry.COLUMN_ITEM_NAME)) {
             String name = values.getAsString(ItemEntry.COLUMN_ITEM_NAME);
             if (name == null) {
@@ -109,15 +122,91 @@ public class ItemProvider extends ContentProvider {
                 throw new IllegalArgumentException("Product requires valid price");
             }
         }
+        if(values.containsKey(ItemEntry.COLUMN_ITEM_QUANTITY)){
+            Integer quantity = values.getAsInteger(ItemEntry.COLUMN_ITEM_QUANTITY);
+            if(quantity == null || !ItemEntry.isValidQuantity(quantity)){
+                throw new IllegalArgumentException("Product requires a valid quantity");
+            }
+        }
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+        long id = database.insert(ItemEntry.TABLE_NAME, null, values);
+        if (id == -1){
+            Log.e(LOG_TAG, "Failed to insert row for " + uri);
+            return null;
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+
+        return ContentUris.withAppendedId(uri, id);
     }
 
     @Override
-    public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+    public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        // Figure out if the URI matcher can match the URI to a specific code
+        final int match = sUriMatcher.match(uri);
+        int rowsDeleted;
+
+        switch(match){
+            case ITEMS:
+                rowsDeleted = db.delete(ItemEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case ITEM_ID:
+                selection = ItemEntry._ID + "=?";
+                selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
+                rowsDeleted = db.delete(ItemEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            default:
+                throw new IllegalArgumentException("Deletion is not supported for "+ uri);
+        }
+        if (rowsDeleted != 0){
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        return rowsDeleted;
     }
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+        final int match = sUriMatcher.match(uri);
+        switch(match){
+            case ITEMS:
+                return updateItem(uri, contentValues, s, strings);
+            case ITEM_ID:
+                s = ItemEntry._ID + "=?";
+                strings = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                return updateItem(uri, contentValues, s, strings);
+            default:
+                throw new IllegalArgumentException("Update is not suported for " + uri);
+        }
+    }
+    private int updateItem(Uri uri, ContentValues values, String selection, String[] selectionArgs){
+        if (values.containsKey(ItemEntry.COLUMN_ITEM_NAME)) {
+            String name = values.getAsString(ItemEntry.COLUMN_ITEM_NAME);
+            if (name == null) {
+                throw new IllegalArgumentException("Product requires a name");
+            }
+        }
+        if (values.containsKey(ItemEntry.COLUMN_ITEM_PRICE)) {
+            Integer price = values.getAsInteger(ItemEntry.COLUMN_ITEM_PRICE);
+            if (price == null || !ItemEntry.isValidPrice(price)) {
+                throw new IllegalArgumentException("Product requires valid price");
+            }
+        }
+        if(values.containsKey(ItemEntry.COLUMN_ITEM_QUANTITY)){
+            Integer quantity = values.getAsInteger(ItemEntry.COLUMN_ITEM_QUANTITY);
+            if(quantity == null || !ItemEntry.isValidQuantity(quantity)){
+                throw new IllegalArgumentException("Product requires a valid quantity");
+            }
+        }
+        if(values.size() == 0){
+            return 0;
+        }
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+        int rowsUpdated = database.update(ItemEntry.TABLE_NAME, values, selection, selectionArgs);
+
+        if(rowsUpdated != 0){
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        return rowsUpdated;
     }
 }
