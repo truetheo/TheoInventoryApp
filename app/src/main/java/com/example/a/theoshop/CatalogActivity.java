@@ -41,10 +41,12 @@ public class CatalogActivity extends AppCompatActivity implements android.app.Lo
 
         mCursorAdapter = new ItemCursorAdapter(this, null);
         listView.setAdapter(mCursorAdapter);
+        Log.v(LOG_TAG,"listView is set!");
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.v(LOG_TAG,"You are clicking!!");
                 //intent to send to the detailActivity
                 Intent intent = new Intent(CatalogActivity.this, DetailActivity.class);
                 //URI of the currently clicked item

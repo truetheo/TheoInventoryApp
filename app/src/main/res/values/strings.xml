@@ -13,6 +13,8 @@
     <string name="editor_update_product_failed">Error with product update</string>
     <string name="delete_dialog_msg">Delete this product?</string>
     <string name="delete">Delete</string>
+    <string name="delete_failed">Failed to delete</string>
+    <string name="delete_successful">Deleted successful</string>
     <string name="cancel">Cancel</string>
     <string name="category_overview">Overview</string>
     <string name="category_measurement">Measurement</string>
@@ -23,4 +25,6 @@
     <string name="unsaved_changes_dialog_msg">Do you want to stop editing? Changes are unsaved</string>
     <string name="discard">Discard</string>
     <string name="keep_editing">Keep editing</string>
+    <string name="image_load_failed">Image load failed</string>
+    <string name="image_load_succeed">Image load ok</string>
 </resources>

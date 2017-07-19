@@ -36,8 +36,12 @@ public class ItemCursorAdapter extends CursorAdapter {
         int imageColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_IMAGE);
         // getting the content
         String itemName = cursor.getString(nameColumnIndex);
-        int priceValue = cursor.getInt(priceColumnIndex);
+        float priceValue = cursor.getFloat(priceColumnIndex);
         int quantityValue = cursor.getInt(quantityColumnIndex);
+
+        nameTextView.setText(itemName);
+        priceTextView.setText("" + priceValue);
+        quantityTextView.setText("" + quantityValue);
 
 
     }

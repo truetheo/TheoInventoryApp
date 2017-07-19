@@ -20,9 +20,9 @@ public class ItemDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        final String TYPE_TEXT = " TEXT";
-        final String TYPE_FLOAT = " REAL";
-        final String TYPE_INTEGER = " INTEGER";
+        final String TYPE_TEXT = " TEXT ";
+        final String TYPE_FLOAT = " REAL ";
+        final String TYPE_INTEGER = " INTEGER ";
         final String TYPE_COMMA = ", ";
         String CREATE_ITEMS_TABLE_SQL = "CREATE TABLE " +
                 ItemEntry.TABLE_NAME +
@@ -30,8 +30,8 @@ public class ItemDbHelper extends SQLiteOpenHelper {
                 ItemEntry._ID + TYPE_INTEGER + "PRIMARY KEY AUTOINCREMENT"+ TYPE_COMMA +
                 ItemEntry.COLUMN_ITEM_NAME + TYPE_TEXT+"NOT NULL"+ TYPE_COMMA+
                 ItemEntry.COLUMN_ITEM_PRICE + TYPE_FLOAT +"NOT NULL"+ TYPE_COMMA +
-                ItemEntry.COLUMN_ITEM_QUANTITY + TYPE_INTEGER + "NOT NULL"+ TYPE_COMMA +
-                ItemEntry.COLUMN_ITEM_IMAGE + TYPE_TEXT + "NOT NULL" + ");";
+                ItemEntry.COLUMN_ITEM_QUANTITY + TYPE_INTEGER + "NOT NULL"+
+                 ");";
         db.execSQL(CREATE_ITEMS_TABLE_SQL);
     }
 
