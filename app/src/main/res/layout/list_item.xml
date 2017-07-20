@@ -51,6 +51,7 @@
     </LinearLayout>
 
     <Button
+        android:id="@+id/sale_button"
         style="@style/textStyle"
         android:layout_width="@dimen/circle_size"
         android:layout_height="@dimen/circle_size"

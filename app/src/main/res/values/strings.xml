@@ -27,4 +27,9 @@
     <string name="keep_editing">Keep editing</string>
     <string name="image_load_failed">Image load failed</string>
     <string name="image_load_succeed">Image load ok</string>
+    <string name="item_out_of_stock">Sorry, the item that you selected is out of stock</string>
+    <string name="lack_product_name">Name the product</string>
+    <string name="lack_product_price">Add product price</string>
+    <string name="lack_product_quantity">Add quantity</string>
+    <string name="lack_product_image">Add image</string>
 </resources>

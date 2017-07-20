@@ -6,8 +6,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AlertDialog;
@@ -25,12 +29,18 @@ import android.widget.Toast;
 import com.example.a.theoshop.data.ItemContract.ItemEntry;
 import com.example.a.theoshop.data.ItemDbHelper;
 
+import java.io.ByteArrayOutputStream;
+
 /**
  * Created by a on 19-Jul-17.
  */
 
 public class DetailActivity extends AppCompatActivity implements android.app.LoaderManager.LoaderCallbacks<Cursor> {
     private static final int LOADER_EDITOR_ACTIVITY = 0;
+    private static final int PICK_IMAGE = 200;
+    private int STORAGE_PERMISSION_CODE =23;
+    private Uri imageUri;
+    private Bitmap itemBitmap;
     private EditText mNameEditText;
     private EditText mPriceEditText;
     private EditText mQuantityEditText;
@@ -77,6 +87,16 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
         mPriceEditText.setOnTouchListener(mTouchListener);
         mQuantityEditText.setOnTouchListener(mTouchListener);
         mItemImageView.setOnTouchListener(mTouchListener);
+
+        mItemImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                    openGallery();
+
+            }
+        });
     }
 
     private void saveItem() {
@@ -92,50 +112,56 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             return;
         }
         ContentValues values = new ContentValues();
-        values.put(ItemEntry.COLUMN_ITEM_NAME, productName);
-        values.put(ItemEntry.COLUMN_ITEM_QUANTITY, quantityValue);
-        // If the weight is not provided by the user, don't try to parse the string into an
-        // integer value. Use 0 by default.
-        float price = 0;
-        if (!TextUtils.isEmpty(priceValue)) {
-            price = Float.parseFloat(priceValue);
-        }
-        values.put(ItemEntry.COLUMN_ITEM_PRICE, price);
-
-        if (!TextUtils.isEmpty(quantityValue)) {
-            quantity = Integer.parseInt(quantityValue);
-        }
-        values.put(ItemEntry.COLUMN_ITEM_QUANTITY, quantity);
-        // Determine if this is a new or existing item by checking if currentItemUri is null or not
-        if (currentItemUri == null) {
-            // This is a NEW item, so insert a new item into the provider,
-            // returning the content URI for the new item.
-            Uri newUri = getContentResolver().insert(ItemEntry.CONTENT_URI, values);
-
-            // Show a toast message depending on whether or not the insertion was successful.
-            if (newUri == null) {
-                // If the new content URI is null, then there was an error with insertion.
-                Toast.makeText(this, getString(R.string.editor_insert_product_failed),
-                        Toast.LENGTH_SHORT).show();
-            } else {
-                // Otherwise, the insertion was successful and we can display a toast.
-                Toast.makeText(this, getString(R.string.editor_insert_product_successful),
-                        Toast.LENGTH_SHORT).show();
-            }
+        if (TextUtils.isEmpty(productName)) {
+            Toast.makeText(this, getString(R.string.lack_product_name), Toast.LENGTH_SHORT).show();
+        } else if (TextUtils.isEmpty(priceValue)) {
+            Toast.makeText(this, getString(R.string.lack_product_price), Toast.LENGTH_SHORT).show();
+        } else if (TextUtils.isEmpty(quantityValue)) {
+            Toast.makeText(this, getString(R.string.lack_product_quantity), Toast.LENGTH_SHORT).show();
+        } else if (itemBitmap == null) {
+            Toast.makeText(this, getString(R.string.lack_product_image), Toast.LENGTH_SHORT).show();
         } else {
+            values.put(ItemEntry.COLUMN_ITEM_NAME, productName);
+            float price = Float.parseFloat(priceValue);
+            values.put(ItemEntry.COLUMN_ITEM_PRICE, price);
+            quantity = Integer.parseInt(quantityValue);
+            values.put(ItemEntry.COLUMN_ITEM_QUANTITY, quantity);
+            byte[] image = getBytes(itemBitmap);
+            values.put(ItemEntry.COLUMN_ITEM_IMAGE, image);
 
-            int rowsAffected = getContentResolver().update(currentItemUri, values, null, null);
 
-            // Show a toast message depending on whether or not the update was successful.
-            if (rowsAffected == 0) {
-                // If no rows were affected, then there was an error with the update.
-                Toast.makeText(this, getString(R.string.editor_update_product_failed),
-                        Toast.LENGTH_SHORT).show();
+            // Determine if this is a new or existing item by checking if currentItemUri is null or not
+            if (currentItemUri == null) {
+                // This is a NEW item, so insert a new item into the provider,
+                // returning the content URI for the new item.
+                Uri newUri = getContentResolver().insert(ItemEntry.CONTENT_URI, values);
+
+                // Show a toast message depending on whether or not the insertion was successful.
+                if (newUri == null) {
+                    // If the new content URI is null, then there was an error with insertion.
+                    Toast.makeText(this, getString(R.string.editor_insert_product_failed),
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    // Otherwise, the insertion was successful and we can display a toast.
+                    Toast.makeText(this, getString(R.string.editor_insert_product_successful),
+                            Toast.LENGTH_SHORT).show();
+                }
             } else {
-                // Otherwise, the update was successful and we can display a toast.
-                Toast.makeText(this, getString(R.string.editor_update_product_successful),
-                        Toast.LENGTH_SHORT).show();
+
+                int rowsAffected = getContentResolver().update(currentItemUri, values, null, null);
+
+                // Show a toast message depending on whether or not the update was successful.
+                if (rowsAffected == 0) {
+                    // If no rows were affected, then there was an error with the update.
+                    Toast.makeText(this, getString(R.string.editor_update_product_failed),
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    // Otherwise, the update was successful and we can display a toast.
+                    Toast.makeText(this, getString(R.string.editor_update_product_successful),
+                            Toast.LENGTH_SHORT).show();
+                }
             }
+            finish();
         }
 
     }
@@ -151,6 +177,12 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             mQuantityEditText.setText(String.valueOf(quantity));
         }
     }
+
+    public void openContacts(View view) {
+        Intent contacts = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        startActivityForResult(contacts, 1);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -176,8 +208,6 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             case R.id.action_save:
                 // Save item to database
                 saveItem();
-                // Exit activity
-                finish();
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
@@ -238,14 +268,17 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             int nameColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_NAME);
             int priceColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_PRICE);
             int quantityColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_QUANTITY);
-            //int imageColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_IMAGE);
+            int imageColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_IMAGE);
 
 
             // Extract out the value from the Cursor for the given column index
             String name = cursor.getString(nameColumnIndex);
             float price = cursor.getFloat(priceColumnIndex);
             quantity = cursor.getInt(quantityColumnIndex);
-            //String image = cursor.getString(imageColumnIndex);
+            byte[] image = cursor.getBlob(imageColumnIndex);
+            if (image != null){
+                mItemImageView.setImageBitmap(getImage(image));
+            }
 
             // Update the views on the screen with the values from the database
             mNameEditText.setText(name);
@@ -339,5 +372,52 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
 
         // Close the activity
         finish();
+    }
+    /**Credits:
+     * Cherry and other icons by Icons8
+     * https://icons8.com/icon/19475/Cherry
+     */
+    private void openGallery() {
+        Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        //getIntent().setType("image/*");
+        startActivityForResult(gallery, PICK_IMAGE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && requestCode == PICK_IMAGE && data != null) {
+            imageUri = data.getData();
+            String[] pathColumn = {MediaStore.Images.Media.DATA};
+            Cursor cursor = getContentResolver().query(imageUri, pathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(pathColumn[0]);
+            String imagePath = cursor.getString(columnIndex);
+            cursor.close();
+            itemBitmap = BitmapFactory.decodeFile(imagePath);
+
+            mItemImageView.setImageBitmap(itemBitmap);
+        }
+    }
+
+    /**
+     * COnvertion from bitmap to byte array
+     *
+     * @param bitmap Revived data from the user gallery is converted
+     * @return byte[] to store in database BLOB
+     */
+    public static byte[] getBytes(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream);
+        return stream.toByteArray();
+    }
+
+    /**
+     * byte array -> Bitmap
+     * @param image BLOB from database
+     * @return Bitmap to display in UI
+     */
+    private static Bitmap getImage(byte[] image) {
+        return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
 }
