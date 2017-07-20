@@ -62,7 +62,7 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/button_order_momre"
+        android:id="@+id/button_order_more"
         android:text="Order more"
         android:onClick="openContacts"/>
 

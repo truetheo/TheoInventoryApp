@@ -10,8 +10,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AlertDialog;
@@ -32,6 +30,8 @@ import com.example.a.theoshop.data.ItemDbHelper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
+import static android.provider.MediaStore.Images.Media.getBitmap;
 
 /**
  * Created by a on 19-Jul-17.
@@ -73,6 +73,8 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
 
         if (currentItemUri == null) {
             setTitle(getString(R.string.editor_activity_new_item));
+            Button orderMore = (Button) findViewById(R.id.button_order_more);
+            orderMore.setVisibility(View.GONE);
             invalidateOptionsMenu();
         } else {
             setTitle(getString(R.string.editor_activity_title_edit_item));
@@ -176,8 +178,13 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
     }
 
     public void openContacts(View view) {
-        Intent contacts = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
-        startActivityForResult(contacts, 1);
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        intent.putExtra(Intent.EXTRA_EMAIL, getString(R.string.supply_email));
+        intent.putExtra(Intent.EXTRA_SUBJECT, mNameEditText.getText().toString());
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
     }
 
 
@@ -272,11 +279,14 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             String name = cursor.getString(nameColumnIndex);
             float price = cursor.getFloat(priceColumnIndex);
             quantity = cursor.getInt(quantityColumnIndex);
+
             byte[] image = cursor.getBlob(imageColumnIndex);
             Log.v(LOG_TAG,"Image byte is " + image.toString());
             // Display image attached to the product
+            itemBitmap = getImage(image);
+            Log.v(LOG_TAG,"itemBitmap is " + itemBitmap.toString());
             if (image != null){
-                mItemImageView.setImageBitmap(getImage(image));
+                mItemImageView.setImageBitmap(itemBitmap);
             }
             // Update the views on the screen with the values from the database
             mNameEditText.setText(name);
@@ -336,15 +346,7 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
                 deleteItem();
             }
         });
-        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                // User clicked the "Cancel" button, so dismiss the dialog
-                // and continue editing the item.
-                if (dialog != null) {
-                    dialog.dismiss();
-                }
-            }
-        });
+        builder.setNegativeButton(R.string.cancel, null);
         // Create and show the AlertDialog
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
@@ -383,7 +385,7 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             imageUri = data.getData();
 
             try {
-                itemBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                itemBitmap = getBitmap(this.getContentResolver(), imageUri);
             } catch (IOException e) {
                 e.printStackTrace();
             }

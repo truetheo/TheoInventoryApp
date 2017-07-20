@@ -32,4 +32,5 @@
     <string name="lack_product_price">Add product price</string>
     <string name="lack_product_quantity">Add quantity</string>
     <string name="lack_product_image">Add image</string>
+    <string name="supply_email">needmore@supply.com</string>
 </resources>
