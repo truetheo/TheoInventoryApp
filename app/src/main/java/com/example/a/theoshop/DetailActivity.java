@@ -17,6 +17,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -30,6 +31,7 @@ import com.example.a.theoshop.data.ItemContract.ItemEntry;
 import com.example.a.theoshop.data.ItemDbHelper;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 /**
  * Created by a on 19-Jul-17.
@@ -38,7 +40,7 @@ import java.io.ByteArrayOutputStream;
 public class DetailActivity extends AppCompatActivity implements android.app.LoaderManager.LoaderCallbacks<Cursor> {
     private static final int LOADER_EDITOR_ACTIVITY = 0;
     private static final int PICK_IMAGE = 200;
-    private int STORAGE_PERMISSION_CODE =23;
+    private static final String LOG_TAG = DetailActivity.class.getSimpleName();
     private Uri imageUri;
     private Bitmap itemBitmap;
     private EditText mNameEditText;
@@ -91,10 +93,7 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
         mItemImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
                     openGallery();
-
             }
         });
     }
@@ -128,6 +127,7 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             values.put(ItemEntry.COLUMN_ITEM_QUANTITY, quantity);
             byte[] image = getBytes(itemBitmap);
             values.put(ItemEntry.COLUMN_ITEM_IMAGE, image);
+            Log.v(LOG_TAG, "Image inserted " + image.toString() );
 
 
             // Determine if this is a new or existing item by checking if currentItemUri is null or not
@@ -135,7 +135,6 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
                 // This is a NEW item, so insert a new item into the provider,
                 // returning the content URI for the new item.
                 Uri newUri = getContentResolver().insert(ItemEntry.CONTENT_URI, values);
-
                 // Show a toast message depending on whether or not the insertion was successful.
                 if (newUri == null) {
                     // If the new content URI is null, then there was an error with insertion.
@@ -147,9 +146,7 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
                             Toast.LENGTH_SHORT).show();
                 }
             } else {
-
                 int rowsAffected = getContentResolver().update(currentItemUri, values, null, null);
-
                 // Show a toast message depending on whether or not the update was successful.
                 if (rowsAffected == 0) {
                     // If no rows were affected, then there was an error with the update.
@@ -248,11 +245,12 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
                 ItemEntry._ID,
                 ItemEntry.COLUMN_ITEM_NAME,
                 ItemEntry.COLUMN_ITEM_PRICE,
-                ItemEntry.COLUMN_ITEM_QUANTITY};
+                ItemEntry.COLUMN_ITEM_QUANTITY,
+                ItemEntry.COLUMN_ITEM_IMAGE};
 
         // This loader will execute the ContentProvider's query method on a background thread
         return new CursorLoader(this,   // Parent activity context
-                currentItemUri,         // Query the content URI for the current pet
+                currentItemUri,         // Query the content URI for the current item
                 projection,             // Columns to include in the resulting Cursor
                 null,                   // No selection clause
                 null,                   // No selection arguments
@@ -269,25 +267,22 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             int priceColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_PRICE);
             int quantityColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_QUANTITY);
             int imageColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_IMAGE);
-
-
+            Log.v(LOG_TAG,"Image column number is " + imageColumnIndex);
             // Extract out the value from the Cursor for the given column index
             String name = cursor.getString(nameColumnIndex);
             float price = cursor.getFloat(priceColumnIndex);
             quantity = cursor.getInt(quantityColumnIndex);
             byte[] image = cursor.getBlob(imageColumnIndex);
+            Log.v(LOG_TAG,"Image byte is " + image.toString());
+            // Display image attached to the product
             if (image != null){
                 mItemImageView.setImageBitmap(getImage(image));
             }
-
             // Update the views on the screen with the values from the database
             mNameEditText.setText(name);
             mPriceEditText.setText(Float.toString(price));
             mQuantityEditText.setText(Integer.toString(quantity));
-            // Display image attached to the product
-
         }
-
     }
 
     @Override
@@ -373,13 +368,11 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
         // Close the activity
         finish();
     }
-    /**Credits:
-     * Cherry and other icons by Icons8
-     * https://icons8.com/icon/19475/Cherry
-     */
+
     private void openGallery() {
-        Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        //getIntent().setType("image/*");
+        Intent gallery = new Intent();
+        gallery.setType("image/*");
+        gallery.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(gallery, PICK_IMAGE);
     }
 
@@ -388,21 +381,18 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == PICK_IMAGE && data != null) {
             imageUri = data.getData();
-            String[] pathColumn = {MediaStore.Images.Media.DATA};
-            Cursor cursor = getContentResolver().query(imageUri, pathColumn, null, null, null);
-            cursor.moveToFirst();
-            int columnIndex = cursor.getColumnIndex(pathColumn[0]);
-            String imagePath = cursor.getString(columnIndex);
-            cursor.close();
-            itemBitmap = BitmapFactory.decodeFile(imagePath);
 
-            mItemImageView.setImageBitmap(itemBitmap);
+            try {
+                itemBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mItemImageView.setImageURI(imageUri);
         }
     }
 
     /**
-     * COnvertion from bitmap to byte array
-     *
+     * Convert from bitmap to byte array
      * @param bitmap Revived data from the user gallery is converted
      * @return byte[] to store in database BLOB
      */

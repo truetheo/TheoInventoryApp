@@ -3,6 +3,7 @@ package com.example.a.theoshop.data;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.example.a.theoshop.data.ItemContract.ItemEntry;
 
@@ -30,9 +31,10 @@ public class ItemDbHelper extends SQLiteOpenHelper {
                 ItemEntry._ID + TYPE_INTEGER + "PRIMARY KEY AUTOINCREMENT"+ TYPE_COMMA +
                 ItemEntry.COLUMN_ITEM_NAME + TYPE_TEXT+"NOT NULL"+ TYPE_COMMA+
                 ItemEntry.COLUMN_ITEM_PRICE + TYPE_FLOAT +"NOT NULL"+ TYPE_COMMA +
-                ItemEntry.COLUMN_ITEM_QUANTITY + TYPE_INTEGER + "NOT NULL"+
+                ItemEntry.COLUMN_ITEM_QUANTITY + TYPE_INTEGER + "NOT NULL"+ TYPE_COMMA +
                 ItemEntry.COLUMN_ITEM_IMAGE + " BLOB NOT NULL" +
                  ");";
+        Log.v(LOG_TAG, "SQL Command is: " + CREATE_ITEMS_TABLE_SQL);
         db.execSQL(CREATE_ITEMS_TABLE_SQL);
     }
 
