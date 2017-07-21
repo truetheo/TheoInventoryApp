@@ -3,6 +3,7 @@ package com.example.a.theoshop.data;
 import android.content.ContentResolver;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.text.TextUtils;
 
 /**
  * Created by a on 18-Jul-17.
@@ -33,6 +34,7 @@ public final class ItemContract {
         public final static String COLUMN_ITEM_PRICE= "price";
         public final static String COLUMN_ITEM_QUANTITY= "quantity";
         public final static String COLUMN_ITEM_IMAGE= "image";
+        public final static String COLUMN_ITEM_EMAIL= "email";
 
         public static boolean isValidPrice(int price){
             if(price > 0){
@@ -42,6 +44,12 @@ public final class ItemContract {
         }
         public static boolean isValidQuantity(int quantity){
             if(quantity < 0){
+                return false;
+            }
+            return true;
+        }
+        public static boolean inValidEmail(String email){
+            if (TextUtils.isEmpty(email)) {
                 return false;
             }
             return true;

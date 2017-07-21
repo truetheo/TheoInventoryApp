@@ -46,7 +46,9 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
     private EditText mNameEditText;
     private EditText mPriceEditText;
     private EditText mQuantityEditText;
+    private EditText mEmailEditText;
     private ImageView mItemImageView;
+    private Button mOrderButton;
     private Button increaseButton;
     private Button decreaseButton;
 
@@ -84,13 +86,16 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
         mPriceEditText = (EditText) findViewById(R.id.price_edit_text);
         mQuantityEditText = (EditText) findViewById(R.id.quantity_change);
         mItemImageView = (ImageView) findViewById(R.id.product_image);
+        mEmailEditText = (EditText) findViewById(R.id.supplier_email);
         increaseButton = (Button) findViewById(R.id.button_quantity_plus);
         decreaseButton = (Button) findViewById(R.id.button_quantity_minus);
+        mOrderButton = (Button) findViewById(R.id.button_order_more);
 
         mNameEditText.setOnTouchListener(mTouchListener);
         mPriceEditText.setOnTouchListener(mTouchListener);
         mQuantityEditText.setOnTouchListener(mTouchListener);
         mItemImageView.setOnTouchListener(mTouchListener);
+        mEmailEditText.setOnTouchListener(mTouchListener);
 
         mItemImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,10 +109,11 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
         String productName = mNameEditText.getText().toString().trim();
         String priceValue = mPriceEditText.getText().toString().trim();
         String quantityValue = mQuantityEditText.getText().toString().trim();
+        String supplierEmail = mEmailEditText.getText().toString().trim();
 
         if (currentItemUri == null &&
                 TextUtils.isEmpty(productName) && TextUtils.isEmpty(priceValue) &&
-                TextUtils.isEmpty(quantityValue)) {
+                TextUtils.isEmpty(quantityValue) && TextUtils.isEmpty(supplierEmail)) {
             // Since no fields were modified, we can return early without creating a new item.
             // No need to create ContentValues and no need to do any ContentProvider operations.
             return;
@@ -121,7 +127,9 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             Toast.makeText(this, getString(R.string.lack_product_quantity), Toast.LENGTH_SHORT).show();
         } else if (itemBitmap == null) {
             Toast.makeText(this, getString(R.string.lack_product_image), Toast.LENGTH_SHORT).show();
-        } else {
+        } else if (TextUtils.isEmpty(supplierEmail)) {
+            Toast.makeText(this, getString(R.string.lack_supplier_email), Toast.LENGTH_SHORT).show();
+        }else {
             values.put(ItemEntry.COLUMN_ITEM_NAME, productName);
             float price = Float.parseFloat(priceValue);
             values.put(ItemEntry.COLUMN_ITEM_PRICE, price);
@@ -130,6 +138,7 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             byte[] image = getBytes(itemBitmap);
             values.put(ItemEntry.COLUMN_ITEM_IMAGE, image);
             Log.v(LOG_TAG, "Image inserted " + image.toString() );
+            values.put(ItemEntry.COLUMN_ITEM_EMAIL, supplierEmail);
 
 
             // Determine if this is a new or existing item by checking if currentItemUri is null or not
@@ -177,11 +186,12 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
         }
     }
 
-    public void openContacts(View view) {
+    public void openEmail(String email, String product) {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setData(Uri.parse("mailto:")); // only email apps should handle this
-        intent.putExtra(Intent.EXTRA_EMAIL, getString(R.string.supply_email));
-        intent.putExtra(Intent.EXTRA_SUBJECT, mNameEditText.getText().toString());
+        Log.v(LOG_TAG, "Hi , i go ur email " + email);
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{email});
+        intent.putExtra(Intent.EXTRA_SUBJECT, product);
         if (intent.resolveActivity(getPackageManager()) != null) {
             startActivity(intent);
         }
@@ -253,7 +263,8 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
                 ItemEntry.COLUMN_ITEM_NAME,
                 ItemEntry.COLUMN_ITEM_PRICE,
                 ItemEntry.COLUMN_ITEM_QUANTITY,
-                ItemEntry.COLUMN_ITEM_IMAGE};
+                ItemEntry.COLUMN_ITEM_IMAGE,
+                ItemEntry.COLUMN_ITEM_EMAIL};
 
         // This loader will execute the ContentProvider's query method on a background thread
         return new CursorLoader(this,   // Parent activity context
@@ -274,9 +285,11 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             int priceColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_PRICE);
             int quantityColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_QUANTITY);
             int imageColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_IMAGE);
+            int emailColumnIndex = cursor.getColumnIndex(ItemEntry.COLUMN_ITEM_EMAIL);
             Log.v(LOG_TAG,"Image column number is " + imageColumnIndex);
             // Extract out the value from the Cursor for the given column index
-            String name = cursor.getString(nameColumnIndex);
+            final String name = cursor.getString(nameColumnIndex);
+            final String email = cursor.getString(emailColumnIndex);
             float price = cursor.getFloat(priceColumnIndex);
             quantity = cursor.getInt(quantityColumnIndex);
 
@@ -292,6 +305,16 @@ public class DetailActivity extends AppCompatActivity implements android.app.Loa
             mNameEditText.setText(name);
             mPriceEditText.setText(Float.toString(price));
             mQuantityEditText.setText(Integer.toString(quantity));
+            mEmailEditText.setText(email);
+            Log.v(LOG_TAG,"email is " + email);
+            cursor.close();
+            mOrderButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    openEmail(email, name);
+                }
+            });
+
         }
     }
 

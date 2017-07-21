@@ -32,7 +32,8 @@ public class ItemDbHelper extends SQLiteOpenHelper {
                 ItemEntry.COLUMN_ITEM_NAME + TYPE_TEXT+"NOT NULL"+ TYPE_COMMA+
                 ItemEntry.COLUMN_ITEM_PRICE + TYPE_FLOAT +"NOT NULL"+ TYPE_COMMA +
                 ItemEntry.COLUMN_ITEM_QUANTITY + TYPE_INTEGER + "NOT NULL"+ TYPE_COMMA +
-                ItemEntry.COLUMN_ITEM_IMAGE + " BLOB NOT NULL" +
+                ItemEntry.COLUMN_ITEM_IMAGE + " BLOB NOT NULL" + TYPE_COMMA +
+                ItemEntry.COLUMN_ITEM_EMAIL + TYPE_TEXT + "NOT NULL" +
                  ");";
         Log.v(LOG_TAG, "SQL Command is: " + CREATE_ITEMS_TABLE_SQL);
         db.execSQL(CREATE_ITEMS_TABLE_SQL);

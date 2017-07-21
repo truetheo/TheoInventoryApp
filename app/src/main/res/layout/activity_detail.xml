@@ -59,11 +59,17 @@
         android:layout_marginBottom="@dimen/margin_big"
         android:contentDescription="@string/editor_product_image"
         />
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_big"
+        android:hint="@string/supply_email"
+        android:id="@+id/supplier_email"
+        android:inputType="textEmailAddress"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/button_order_more"
-        android:text="Order more"
-        android:onClick="openContacts"/>
+        android:text="Order more" />
 
 </LinearLayout>

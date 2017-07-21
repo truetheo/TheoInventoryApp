@@ -128,6 +128,12 @@ public class ItemProvider extends ContentProvider {
                 throw new IllegalArgumentException("Product requires a valid quantity");
             }
         }
+        if (values.containsKey(ItemEntry.COLUMN_ITEM_EMAIL)) {
+            String email = values.getAsString(ItemEntry.COLUMN_ITEM_EMAIL);
+            if (email == null || !ItemEntry.inValidEmail(email)) {
+                throw new IllegalArgumentException("Product requires an email");
+            }
+        }
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
         long id = database.insert(ItemEntry.TABLE_NAME, null, values);
         if (id == -1){
@@ -195,6 +201,12 @@ public class ItemProvider extends ContentProvider {
             Integer quantity = values.getAsInteger(ItemEntry.COLUMN_ITEM_QUANTITY);
             if(quantity == null || !ItemEntry.isValidQuantity(quantity)){
                 throw new IllegalArgumentException("Product requires a valid quantity");
+            }
+        }
+        if (values.containsKey(ItemEntry.COLUMN_ITEM_EMAIL)) {
+            String email = values.getAsString(ItemEntry.COLUMN_ITEM_EMAIL);
+            if (email == null || !ItemEntry.inValidEmail(email)) {
+                throw new IllegalArgumentException("Product requires an email");
             }
         }
         if(values.size() == 0){
