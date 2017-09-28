@@ -13,4 +13,5 @@ App uses:
 - ArrayAdapters with ListView for preformace optimalization,
 - CursorAdapters 
 - XML interface,
+- ContentProvider,
 ...and much more!
